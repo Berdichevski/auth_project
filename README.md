@@ -10,7 +10,7 @@ python -m venv venv <br>
 .\venv\Scripts\Activate.ps1 <br>
 pip install -r requirements.txt
 
-# Переменные окружения
+# Переменные окружения (.env)
 DJANGO_SECRET_KEY <br>
 DB_NAME <br>
 DB_USER <br>
