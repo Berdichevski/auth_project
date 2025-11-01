@@ -1,4 +1,3 @@
-# accounts/tests/test_middleware_and_permissions.py
 import datetime, jwt
 from django.conf import settings
 from django.test import TestCase, RequestFactory
@@ -8,6 +7,7 @@ from accounts.middleware import JWTMiddleware
 from accounts.permissions import IsAuthenticatedCustom
 from accounts.models import User
 from access.models import Role
+from rest_framework.exceptions import NotAuthenticated
 
 class MiddlewarePermissionTests(TestCase):
     def setUp(self):
@@ -46,7 +46,6 @@ class MiddlewarePermissionTests(TestCase):
         self.assertTrue(isinstance(req.user, AnonymousUser))
 
     def test_permission_allows_active_user(self):
-        perm = IsAuthenticatedCustom()
         token = self._make_token(self.user.id)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
         # дергаем защищённый эндпоинт — если permission пропускает, будет 200
@@ -57,4 +56,5 @@ class MiddlewarePermissionTests(TestCase):
         perm = IsAuthenticatedCustom()
         req = self.factory.get('/api/profile/')
         req.user = AnonymousUser()
-        self.assertFalse(perm.has_permission(req, view=None))
+        with self.assertRaises(NotAuthenticated):
+            perm.has_permission(req, view=None)

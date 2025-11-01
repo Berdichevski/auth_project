@@ -1,4 +1,3 @@
-# access/tests/test_admin_endpoints.py
 import datetime, jwt
 from django.conf import settings
 from django.test import TestCase
