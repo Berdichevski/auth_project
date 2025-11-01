@@ -92,15 +92,3 @@ class ProfileView(APIView):
         u.is_active = False
         u.save(update_fields=["is_active"])
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# (опционально) Вспомогательный эндпоинт для отладки, можно закоммитить закомментированным
-class WhoAmIView(APIView):
-    permission_classes = [IsAuthenticatedCustom]
-
-    def get(self, request):
-        u = request.user
-        return Response(
-            {"id": getattr(u, "id", None), "email": getattr(u, "email", None), "class": u.__class__.__name__},
-            status=status.HTTP_200_OK,
-        )

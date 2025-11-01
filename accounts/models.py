@@ -39,6 +39,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_anonymous(self) -> bool:
         return False
 
+    #это чтобы DRF не путал нашего пользователя с анонимным
+
     # связь с ролью RBAC (наша кастомная)
     role = models.ForeignKey('access.Role', on_delete=models.SET_NULL, null=True, blank=True)
 
