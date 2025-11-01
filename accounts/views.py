@@ -1,6 +1,7 @@
 import datetime
 import jwt
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,7 +9,6 @@ from rest_framework import status
 from accounts.models import User
 from accounts.permissions import IsAuthenticatedCustom
 from accounts.serializers import RegisterSerializer, ProfileSerializer
-
 
 class RegisterView(APIView):
     """
@@ -68,27 +68,38 @@ class LogoutView(APIView):
     def post(self, request):
         return Response({"detail": "Logged out (discard token client-side)"}, status=status.HTTP_200_OK)
 
+class AuthRequiredMixin:
+    """Жёстко отдаёт 401, если пользователь не определён."""
+    def _ensure_auth(self, request):
+        u = getattr(request, "user", None)
+        if (u is None) or isinstance(u, AnonymousUser) or (getattr(u, "is_active", False) is not True):
+            return Response({"detail": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        return None
 
-class ProfileView(APIView):
-    """
-    Профиль текущего пользователя (требует Bearer токен):
-    GET    /api/profile/
-    PUT    /api/profile/
-    DELETE /api/profile/   -> soft delete (is_active=False)
-    """
-    permission_classes = [IsAuthenticatedCustom]
+class ProfileView(AuthRequiredMixin, APIView):
+    permission_classes = []
 
     def get(self, request):
+        unauthorized = self._ensure_auth(request)
+        if unauthorized:
+            return unauthorized
         return Response(ProfileSerializer(request.user).data, status=status.HTTP_200_OK)
 
     def put(self, request):
+        unauthorized = self._ensure_auth(request)
+        if unauthorized:
+            return unauthorized
         ser = ProfileSerializer(request.user, data=request.data, partial=True)
         ser.is_valid(raise_exception=True)
         ser.save()
         return Response(ser.data, status=status.HTTP_200_OK)
 
     def delete(self, request):
+        unauthorized = self._ensure_auth(request)
+        if unauthorized:
+            return unauthorized
         u = request.user
         u.is_active = False
         u.save(update_fields=["is_active"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+

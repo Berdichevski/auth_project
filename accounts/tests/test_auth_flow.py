@@ -1,4 +1,3 @@
-# accounts/tests/test_auth_flow.py
 from django.test import TestCase
 from rest_framework.test import APIClient
 from accounts.models import User
